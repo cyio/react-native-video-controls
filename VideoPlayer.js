@@ -387,7 +387,12 @@ export default class VideoPlayer extends Component {
     _toggleFullscreen() {
         let state = this.state;
         state.isFullscreen = ! state.isFullscreen;
-        state.resizeMode = state.isFullscreen === true ? 'cover' : 'contain';
+        if (state.isFullscreen) {
+            this.player.ref.dismissFullscreenPlayer()
+        } else {
+            this.player.ref.presentFullscreenPlayer()
+        }
+        // state.resizeMode = state.isFullscreen === true ? 'cover' : 'contain';
 
         this.setState( state );
     }
@@ -754,7 +759,9 @@ export default class VideoPlayer extends Component {
                 activeOpacity={ 0.3 }
                 onPress={()=>{
                     this.resetControlTimeout();
-                    callback();
+                    if (callback) {
+                        callback();
+                    }
                 }}
                 style={[
                     styles.controls.control,
@@ -877,8 +884,8 @@ export default class VideoPlayer extends Component {
                     styles.controls.bottomControlGroup
                 ]}>
                     { this.renderPlayPause() }
-                    { this.renderTitle() }
                     { this.renderTimer() }
+                    { this.renderFullscreen() }
                 </View>
             </Image>
             </Animated.View>
@@ -961,12 +968,14 @@ export default class VideoPlayer extends Component {
      * Show our timer.
      */
     renderTimer() {
-        return this.renderControl(
-            <Text style={ styles.controls.timerText }>
-                { this.calculateTime() }
-            </Text>,
-            this.methods.toggleTimer,
-            styles.controls.timer
+        const total = this.formatTime( this.state.duration ),
+            remain = this.formatTime( this.state.currentTime ) 
+        return (
+            <View style={styles.controls.timer}>
+                <Text style={ styles.controls.timerText }>
+                    { remain + ' / ' + total }
+                </Text>
+            </View>
         );
     }
 
@@ -1040,7 +1049,6 @@ export default class VideoPlayer extends Component {
                         source={ this.props.source }
                     />
                     { this.renderError() }
-                    { this.renderTopControls() }
                     { this.renderLoader() }
                     { this.renderBottomControls() }
                 </View>
@@ -1148,6 +1156,8 @@ const styles = {
             zIndex: 100,
             marginTop: 24,
             marginBottom: 0,
+            position: 'absolute',
+            bottom: 45,
         },
         topControlGroup: {
             alignSelf: 'stretch',
@@ -1186,7 +1196,8 @@ const styles = {
             textAlign: 'center',
         },
         timer: {
-            width: 80,
+            position: 'absolute',
+            left: 50
         },
         timerText: {
             backgroundColor: 'transparent',
