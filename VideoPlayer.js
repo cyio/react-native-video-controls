@@ -874,7 +874,6 @@ export default class VideoPlayer extends Component {
                 style={[ styles.controls.column, styles.controls.vignette,
             ]}>
                 <View style={[
-                    styles.player.container,
                     styles.controls.seekbar
                 ]}>
                     { this.renderSeekbar() }
@@ -1156,8 +1155,6 @@ const styles = {
             zIndex: 100,
             marginTop: 24,
             marginBottom: 0,
-            position: 'absolute',
-            bottom: 45,
         },
         topControlGroup: {
             alignSelf: 'stretch',
@@ -1217,7 +1214,7 @@ const styles = {
         },
         fill: {
             alignSelf: 'flex-start',
-            height: 2,
+            height: 4,
             width: 1,
         },
         handle: {
