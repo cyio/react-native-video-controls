@@ -67,7 +67,7 @@ export default class VideoPlayer extends Component {
             onError: this.props.onError || this._onError.bind( this ),
             onEnd: this.props.onEnd || this._onEnd.bind( this ),
             onScreenPress: this._onScreenPress.bind( this ),
-            onLoadStart: this._onLoadStart.bind( this ),
+            onLoadStart: this.props.onLoad ||this._onLoadStart.bind( this ),
             onProgress: this._onProgress.bind( this ),
             onLoad: this._onLoad.bind( this ),
         };
@@ -758,7 +758,7 @@ export default class VideoPlayer extends Component {
                 underlayColor="transparent"
                 activeOpacity={ 0.3 }
                 onPress={()=>{
-                    this.resetControlTimeout();
+                    // this.resetControlTimeout();
                     if (callback) {
                         callback();
                     }
