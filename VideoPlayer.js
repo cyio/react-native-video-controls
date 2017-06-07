@@ -93,7 +93,7 @@ export default class VideoPlayer extends Component {
             controlTimeout: null,
             volumeWidth: 150,
             iconOffset: 7,
-            seekWidth: 0,
+            seekerWidth: 0,
             ref: Video,
         };
 
@@ -182,7 +182,6 @@ export default class VideoPlayer extends Component {
         if ( ! state.seeking ) {
             const position = this.calculateSeekerPosition();
             this.setSeekerPosition( position );
-            console.warn(position)
         }
 
         this.setState( state );
@@ -520,7 +519,6 @@ export default class VideoPlayer extends Component {
      * @return {float} time in ms based on seekerPosition.
      */
     calculateTimeFromSeekerPosition() {
-        alert(this.player.seekerWidth)
         const percent = this.state.seekerPosition / this.player.seekerWidth;
         return this.state.duration * percent;
     }
@@ -562,16 +560,11 @@ export default class VideoPlayer extends Component {
     }
 
     jumpTo(event) {
-        return
-        // alert(event.nativeEvent.locationX)
         const position = event.nativeEvent.locationX
         this.setSeekerPosition( position );
-        // const time = this.calculateTimeFromSeekerPosition();
-        const percent = position / this.player.seekerWidth;
-        alert(this.player.seekerWidth)
-        const time = this.state.duration * percent;
-        // this.seekTo( time );
-        // this.setControlTimeout();
+        const time = this.calculateTimeFromSeekerPosition();
+        this.seekTo( time );
+        this.setControlTimeout();
     }
 
     /**
@@ -913,37 +906,39 @@ export default class VideoPlayer extends Component {
         return (
           <TouchableWithoutFeedback 
               onPress={ event => this.jumpTo(event) }
+              onLayout={ event => {
+                  this.player.seekerWidth = event.nativeEvent.layout.width;
+              }}
           >
-              <View
-                  style={ styles.seek.track }
-                  onLayout={ event => {
-                      this.player.seekerWidth = event.nativeEvent.layout.width;
-                  }}
-              >
-                  <View style={[
-                      styles.seek.fill,
-                      {
-                          width: this.state.seekerFillWidth,
-                          backgroundColor: this.props.seekColor || '#FFF'
-                      }
-                  ]}>
-                      <View
-                          style={[
-                              styles.seek.handle,
-                              {
-                                  left: this.state.seekerPosition
-                              }
-                          ]}
-                          { ...this.player.seekPanResponder.panHandlers }
-                      >
-                          <View style={[
-                              styles.seek.circle,
-                              { backgroundColor: this.props.seekColor || '#FFF' } ]}
-                          />
+              <View style={ styles.seek.trackWrap }>
+                  <View
+                      style={ styles.seek.track }
+                  >
+                      <View style={[
+                          styles.seek.fill,
+                          {
+                              width: this.state.seekerFillWidth,
+                              backgroundColor: this.props.seekColor || '#FFF'
+                          }
+                      ]}>
+                          <View
+                              style={[
+                                  styles.seek.handle,
+                                  {
+                                      left: this.state.seekerPosition
+                                  }
+                              ]}
+                              { ...this.player.seekPanResponder.panHandlers }
+                          >
+                              <View style={[
+                                  styles.seek.circle,
+                                  { backgroundColor: this.props.seekColor || '#FFF' } ]}
+                              />
+                          </View>
                       </View>
                   </View>
               </View>
-            </TouchableWithoutFeedback>
+          </TouchableWithoutFeedback>
         );
     }
 
@@ -1223,13 +1218,18 @@ const styles = {
         },
     }),
     seek: StyleSheet.create({
+        trackWrap: {
+            alignSelf: 'stretch',
+            justifyContent: 'center',
+            height: 24,
+            marginLeft: 28,
+            marginRight: 28,
+        },
         track: {
             alignSelf: 'stretch',
             justifyContent: 'center',
             backgroundColor: '#333',
-            height: 14,
-            marginLeft: 28,
-            marginRight: 28,
+            height: 4,
         },
         fill: {
             alignSelf: 'flex-start',
