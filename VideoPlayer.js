@@ -33,7 +33,7 @@ export default class VideoPlayer extends Component {
             rate: this.props.rate || 1,
             // Controls
             isFullscreen: isFullscreen,
-            showTimeRemaining: true,
+            showTimeRemaining: false,
             volumeTrackWidth: 0,
             lastScreenPress: 0,
             volumeFillWidth: 0,
@@ -454,12 +454,12 @@ export default class VideoPlayer extends Component {
         time = Math.min(
             Math.max( time, 0 ),
             this.state.duration
-        );
-        const minutes = time / 60;
-        const seconds = time % 60;
+        )
+        const minutes = Math.floor(time / 60);
+        const seconds = Math.floor(time % 60);
 
-        const formattedMinutes = _.padStart( minutes.toFixed( 0 ), 2, 0 );
-        const formattedSeconds = _.padStart( seconds.toFixed( 0 ), 2 , 0 );
+        const formattedMinutes = _.padStart( minutes, 2, 0 );
+        const formattedSeconds = _.padStart( seconds, 2 , 0 );
 
         return `${ symbol }${ formattedMinutes }:${ formattedSeconds }`;
     }
@@ -982,11 +982,11 @@ export default class VideoPlayer extends Component {
      */
     renderTimer() {
         const total = this.formatTime( this.state.duration ),
-            remain = this.formatTime( this.state.currentTime ) 
+            current = this.formatTime( this.state.currentTime ) 
         return (
             <View style={styles.controls.timer}>
                 <Text style={ styles.controls.timerText }>
-                    { remain + ' / ' + total }
+                    { current + ' / ' + total }
                 </Text>
             </View>
         );
