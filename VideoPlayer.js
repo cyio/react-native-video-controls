@@ -64,10 +64,10 @@ export default class VideoPlayer extends Component {
          * Our app listeners and associated methods
          */
         this.events = {
-            onError: this.props.onError || this._onError.bind( this ),
+            onError: this._onError.bind( this ),
             onEnd: this.props.onEnd || this._onEnd.bind( this ),
             onScreenPress: this._onScreenPress.bind( this ),
-            onLoadStart: this.props.onLoad ||this._onLoadStart.bind( this ),
+            onLoadStart: this._onLoadStart.bind( this ),
             onProgress: this._onProgress.bind( this ),
             onLoad: this._onLoad.bind( this ),
         };
@@ -148,6 +148,9 @@ export default class VideoPlayer extends Component {
         state.loading = true;
         this.loadAnimation();
         this.setState( state );
+        if (this.props.onLoadStart) {
+            this.props.onLoadStart()
+        }
     }
 
     /**
@@ -167,6 +170,10 @@ export default class VideoPlayer extends Component {
         if ( state.showControls ) {
             this.setControlTimeout();
         }
+
+        if (this.props.onLoad) {
+            this.props.onLoad()
+        }
     }
 
     /**
@@ -185,6 +192,10 @@ export default class VideoPlayer extends Component {
         }
 
         this.setState( state );
+
+        if (this.props.onProgress) {
+            this.props.onProgress()
+        }
     }
 
     /**
@@ -207,6 +218,10 @@ export default class VideoPlayer extends Component {
         state.loading = false;
 
         this.setState( state );
+
+        if (this.props.onError) {
+            this.props.onError()
+        }
     }
 
     /**
