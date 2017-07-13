@@ -896,17 +896,20 @@ export default class VideoPlayer extends Component {
                 source={ require( './assets/img/bottom-vignette.png' ) }
                 style={[ styles.controls.column, styles.controls.vignette,
             ]}>
-                <View style={[
-                    styles.controls.seekbar
-                ]}>
-                    { this.renderSeekbar() }
-                </View>
+                {
+                    !this.props.hls && 
+                    <View style={[
+                        styles.controls.seekbar
+                    ]}>
+                        { this.renderSeekbar() }
+                    </View>
+                }
                 <View style={[
                     styles.controls.column,
                     styles.controls.bottomControlGroup
                 ]}>
                     { this.renderPlayPause() }
-                    { this.renderTimer() }
+                    { this.props.hls ? <Text style={styles.controls.liveText}>直播</Text> : this.renderTimer() }
                     { this.renderFullscreen() }
                 </View>
             </Image>
@@ -1231,6 +1234,11 @@ const styles = {
             fontSize: 11,
             textAlign: 'right',
         },
+        liveText: {
+            color: '#eee',
+            position: 'absolute',
+            left: 50
+        }
     }),
     seek: StyleSheet.create({
         trackWrap: {
