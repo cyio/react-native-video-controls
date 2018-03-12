@@ -31,19 +31,25 @@ export default class VideoPlayer extends Component {
             paused: this.props.paused || false,
             muted: this.props.muted || false,
             volume: this.props.volume || 1,
+            brightness: this.props.brightness || 1,
             rate: this.props.rate || 1,
             // Controls
             isFullscreen: this.props.resizeMode === 'cover' || false,
             showTimeRemaining: false,
             volumeTrackHeight: 0,
+            brightnessTrackHeight: 0,
             lastScreenPress: 0,
             volumeFillHeight: 150,
+            brightnessFillHeight: 150,
             seekerFillWidth: 0,
             showControls: true,
             showVolumeControl: false,
+            showBrightnessControl: false,
             volumePosition: 0,
+            brightnessPosition: 0,
             seekerPosition: 0,
             volumeOffset: 0,
+            brightnessOffset: 0,
             seekerOffset: 0,
             seeking: false,
             loading: false,
@@ -79,6 +85,7 @@ export default class VideoPlayer extends Component {
          */
         this.methods = {
             onBack: this.props.onBack || this._onBack.bind( this ),
+            setBrightness: this.props.setBrightness,
             toggleFullscreen: this._toggleFullscreen.bind( this ),
             togglePlayPause: this._togglePlayPause.bind( this ),
             toggleControls: this._toggleControls.bind( this ),
@@ -91,9 +98,11 @@ export default class VideoPlayer extends Component {
         this.player = {
             controlTimeoutDelay: this.props.controlTimeout || 15000,
             volumePanResponder: PanResponder,
+            brightnessPanResponder: PanResponder,
             seekPanResponder: PanResponder,
             controlTimeout: null,
             volumeHeight: 150,
+            brightnessHeight: 150,
             iconOffset: 0,
             seekerWidth: 0,
             ref: Video,
@@ -587,6 +596,25 @@ export default class VideoPlayer extends Component {
         this.setState( state );
     }
 
+    setBrightnessPosition( position = 0 ) {
+        let state = this.state;
+        position = this.constrainToBrightnessMinMax( position );
+        state.brightnessPosition = position + this.player.iconOffset;
+        state.brightnessFillHeight = position;
+
+        state.brightnessTrackHeight = this.player.brightnessHeight - state.brightnessFillHeight;
+
+        if ( state.brightnessFillHeight < 0 ) {
+            state.brightnessFillHeight = 0;
+        }
+
+        if ( state.brightnessTrackHeight > 150 ) {
+            state.brightnessTrackHeight = 150;
+        }
+
+        this.setState( state );
+    }
+
     jumpTo(event) {
         const position = event.nativeEvent.locationX
         this.setSeekerPosition( position );
@@ -612,6 +640,16 @@ export default class VideoPlayer extends Component {
         return val;
     }
 
+    constrainToBrightnessMinMax( val = 0 ) {
+        if ( val <= 0 ) {
+            return 0;
+        }
+        else if ( val >= this.player.brightnessHeight) {
+            return this.player.brightnessHeight;
+        }
+        return val;
+    }
+
     /**
      * Get the volume based on the position of the
      * volume object.
@@ -620,6 +658,10 @@ export default class VideoPlayer extends Component {
      */
     calculateVolumeFromVolumePosition() {
         return this.state.volumePosition / this.player.volumeHeight;
+    }
+
+    calculateBrightnessFromBrightnessPosition() {
+        return this.state.brightnessPosition / this.player.brightnessHeight;
     }
 
     /**
@@ -632,7 +674,9 @@ export default class VideoPlayer extends Component {
         return this.player.volumeHeight * this.state.volume;
     }
 
-
+    calculateBrightnessPositionFromBrightness() {
+        return this.player.brightnessHeight * this.state.brightness;
+    }
 
     /**
     | -------------------------------------------------------
@@ -652,6 +696,7 @@ export default class VideoPlayer extends Component {
     componentWillMount() {
         this.initSeekPanResponder();
         this.initVolumePanResponder();
+        this.initBrightnessPanResponder();
     }
 
     /**
@@ -785,6 +830,42 @@ export default class VideoPlayer extends Component {
         });
     }
 
+    /**
+     * Initialize the volume pan responder.
+     */
+    initBrightnessPanResponder() {
+        this.player.brightnessPanResponder = PanResponder.create({
+            onStartShouldSetPanResponder: ( evt, gestureState ) => true,
+            onMoveShouldSetPanResponder: ( evt, gestureState ) => true,
+            onPanResponderGrant: ( evt, gestureState ) => {
+            },
+
+            /**
+             * Update the volume as we change the position.
+             * If we go to 0 then turn on the mute prop
+             * to avoid that weird static-y sound.
+             */
+            onPanResponderMove: ( evt, gestureState ) => {
+                let state = this.state;
+                const position = this.state.brightnessOffset - gestureState.dy;
+
+                this.setBrightnessPosition( position );
+                state.brightness = this.calculateBrightnessFromBrightnessPosition();
+                // state.brightness = Math.random()
+                this.methods.setBrightness(state.brightness)
+                this.setState( state );
+            },
+
+            /**
+             * Update the offset...
+             */
+            onPanResponderRelease: ( evt, gestureState ) => {
+                let state = this.state;
+                state.brightnessOffset = state.brightnessPosition;
+                this.setState( state );
+            }
+        });
+    }
 
     /**
     | -------------------------------------------------------
@@ -1088,6 +1169,16 @@ export default class VideoPlayer extends Component {
         return null;
     }
 
+    renderPanAreaLeft() {
+        return (
+            <View
+                style={ styles.panArea.left }
+                { ...this.player.brightnessPanResponder.panHandlers }
+                >
+            </View>
+        );
+    }
+
     renderPanAreaRight() {
         return (
             <View
@@ -1140,6 +1231,7 @@ export default class VideoPlayer extends Component {
                     { this.renderLoader() }
                     { this.renderBottomControls() }
                     { this.state.showVolumeControl && this.renderVolume() }
+                    { this.renderPanAreaLeft() }
                     { this.renderPanAreaRight() }
                     { this.state.showVolumeControl && this.renderPanInfo() }
                 </View>
@@ -1356,10 +1448,19 @@ const styles = {
         }
     }),
     panArea: StyleSheet.create({
+        left: {
+            position: 'absolute',
+            top: 30,
+            // 不设背景色时，触发不到
+            backgroundColor: 'transparent',
+            left: 10,
+            width: 60,
+            height: 140,
+        },
         right: {
             position: 'absolute',
             top: 30,
-            backgroundColor: 'red',
+            backgroundColor: 'transparent',
             right: 10,
             width: 60,
             height: 140,
