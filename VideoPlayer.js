@@ -40,6 +40,7 @@ export default class VideoPlayer extends Component {
             volumeFillHeight: 150,
             seekerFillWidth: 0,
             showControls: true,
+            showVolumeControl: false,
             volumePosition: 0,
             seekerPosition: 0,
             volumeOffset: 0,
@@ -628,7 +629,7 @@ export default class VideoPlayer extends Component {
      * @return {float} volume handle position in px based on volume
      */
     calculateVolumePositionFromVolume() {
-        return this.player.volumeHeight / this.state.volume;
+        return this.player.volumeHeight * this.state.volume;
     }
 
 
@@ -746,6 +747,7 @@ export default class VideoPlayer extends Component {
             onMoveShouldSetPanResponder: ( evt, gestureState ) => true,
             onPanResponderGrant: ( evt, gestureState ) => {
                 this.clearControlTimeout();
+                this.setState( { showVolumeControl: true });
             },
 
             /**
@@ -776,6 +778,7 @@ export default class VideoPlayer extends Component {
             onPanResponderRelease: ( evt, gestureState ) => {
                 let state = this.state;
                 state.volumeOffset = state.volumePosition;
+                state.showVolumeControl = false
                 this.setControlTimeout();
                 this.setState( state );
             }
@@ -1136,9 +1139,9 @@ export default class VideoPlayer extends Component {
                     { this.renderTopControls() }
                     { this.renderLoader() }
                     { this.renderBottomControls() }
-                    { this.renderVolume() }
+                    { this.state.showVolumeControl && this.renderVolume() }
                     { this.renderPanAreaRight() }
-                    { this.renderPanInfo() }
+                    { this.state.showVolumeControl && this.renderPanInfo() }
                 </View>
             </TouchableWithoutFeedback>
         );
