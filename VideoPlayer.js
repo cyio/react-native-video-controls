@@ -37,7 +37,7 @@ export default class VideoPlayer extends Component {
             showTimeRemaining: false,
             volumeTrackHeight: 0,
             lastScreenPress: 0,
-            volumeFillHeight: 0,
+            volumeFillHeight: 150,
             seekerFillWidth: 0,
             showControls: true,
             volumePosition: 0,
@@ -93,7 +93,7 @@ export default class VideoPlayer extends Component {
             seekPanResponder: PanResponder,
             controlTimeout: null,
             volumeHeight: 150,
-            iconOffset: 7,
+            iconOffset: 0,
             seekerWidth: 0,
             ref: Video,
         };
@@ -605,8 +605,8 @@ export default class VideoPlayer extends Component {
         if ( val <= 0 ) {
             return 0;
         }
-        else if ( val >= this.player.volumeHeight + 9 ) {
-            return this.player.volumeHeight + 9;
+        else if ( val >= this.player.volumeHeight) {
+            return this.player.volumeHeight;
         }
         return val;
     }
@@ -755,7 +755,7 @@ export default class VideoPlayer extends Component {
              */
             onPanResponderMove: ( evt, gestureState ) => {
                 let state = this.state;
-                const position = this.state.volumeOffset + gestureState.dy;
+                const position = this.state.volumeOffset - gestureState.dy;
 
                 this.setVolumePosition( position );
                 state.volume = this.calculateVolumeFromVolumePosition();
@@ -886,17 +886,17 @@ export default class VideoPlayer extends Component {
         return (
             <View style={ styles.volume.container }>
                 <View style={[
-                    styles.volume.fill,
-                    { height: this.state.volumeFillHeight }
-                ]}/>
-                <View style={[
                     styles.volume.track,
                     { height: this.state.volumeTrackHeight }
+                ]}/>
+                <View style={[
+                    styles.volume.fill,
+                    { height: this.state.volumeFillHeight }
                 ]}/>
                 <View
                     style={[
                         styles.volume.handle,
-                        { top: this.state.volumePosition }
+                        { bottom: this.state.volumePosition }
                     ]}
                 >
                     <Image style={ styles.volume.icon } source={ require( './assets/img/volume.png' ) } />
@@ -1098,7 +1098,7 @@ export default class VideoPlayer extends Component {
     renderPanInfo() {
         return (
             <View style={ styles.panArea.info }>
-                <Text>音量：{this.state.volumePosition}</Text>
+                <Text>音量：{Math.round(this.state.volume * 100)}</Text>
             </View>
         );
     }
@@ -1339,15 +1339,15 @@ const styles = {
         track: {
             backgroundColor: '#333',
             width: 5,
-            marginBottom: 7,
         },
         fill: {
             backgroundColor: '#FFF',
             width: 5,
+            // marginBottom: 7,
         },
         handle: {
             position: 'absolute',
-            marginTop: -24,
+            marginBottom: -24,
             marginLeft: -24,
             padding: 16,
         }
